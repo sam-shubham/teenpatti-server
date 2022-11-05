@@ -1535,8 +1535,8 @@ function Register(data, lSocket) {
       });
   });
 }
-function Register2(data, lSocket) {
-  MongoClient.connect(uri, function (err, db) {
+function Register2() {
+  MongoClient.connect(function (err, db) {
     var today = new Date();
     var pWord = bcrypt.hashSync(data.password, bcrypt.genSaltSync(8), null);
     var myobj = {
@@ -1574,14 +1574,6 @@ function Register2(data, lSocket) {
       otp: 0,
     };
     var dbo = db.db("test1");
-    dbo.collection("player").insertOne(myobj, function (err, res) {
-      if (err) {
-      } else {
-        VerifyUser(data, lSocket);
-      }
-      console.log("1 document inserted");
-      db.close();
-    });
   });
 }
 
