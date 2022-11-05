@@ -104,7 +104,6 @@ setInterval(function () {
   for (var i in PLAYER_LIST) {
     var lSocket = PLAYER_LIST[i];
     if (lSocket.adapter.rooms[lSocket.room] != undefined) {
-      lSocket.adapter.rooms[lSocket.room].searchOne = 0;
     }
   }
   var ch3 = true;
@@ -134,7 +133,6 @@ setInterval(function () {
                 if (lSocket2.standby == 0) sta = "center";
                 else sta = "yes";
                 lSocket2.emit("Player_Connect", {
-                  // name: lSocket2.username,
                   total_chips: lSocket2.total_chips,
                   socket_id: lSocket2.id,
                   sittingPos: lSocket2.seat - 1,
@@ -275,7 +273,6 @@ setInterval(function () {
               lSocket2.broadcast.in(lSocket2.room).emit("Start_Play", {});
             } else {
               socRoom.play = "0";
-              socRoom.waitingCount = 5;
               socRoom.searchPlayers = 5;
             }
           }
@@ -290,7 +287,6 @@ setInterval(function () {
 setInterval(function () {
   for (var j in PLAYER_LIST) {
     var lSocket2 = PLAYER_LIST[j];
-    var socRoom = lSocket2.adapter.rooms[lSocket2.room];
     if (socRoom != undefined && lSocket2.watch == 0) {
       var cChe = false;
       if (socRoom.length >= 2) {
@@ -327,7 +323,6 @@ setInterval(function () {
             lSocket2.broadcast.in(lSocket2.room).emit("StartGameTimer", {
               cPlay: socRoom.curPlyValue,
               blindVal: socRoom.blindValue,
-              chalVal: socRoom.chaalValue,
               seen: lSocket2.seen,
               show: showFunc(lSocket2),
               sideShow: sideShowFunc(lSocket2),
