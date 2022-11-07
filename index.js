@@ -1,32 +1,4 @@
 var express = require("express");
-var _ = require("lodash");
-var cards = require("./cards");
-var bcrypt = require("bcryptjs");
-var app = express();
-var server = require("http").createServer(app);
-var io = require("socket.io").listen(server);
-var shortId = require("shortid");
-var bodyParser = require("body-parser");
-let referralCodeGenerator = require("referral-code-generator");
-var MongoClient = require("mongodb").MongoClient;
-var uri = "mongodb+srv://ksbm:Ravi1234@cluster0.rneyjw2.mongodb.net/test1";
-var ServerRes = require("./ServerResponse");
-
-app.use(bodyParser.json());
-app.use(
-  bodyParser.urlencoded({
-    extended: true,
-  })
-);
-
-app.set("port", process.env.PORT || 8001);
-
-app.get("/", function (req, res) {
-  console.log(" Client connecting....");
-  //   console.log(Res);
-  res.send(ServerRes["Res"]);
-});
-
 const mysql = require("mysql");
 const ServerResponse = require("./ServerResponse");
 const pool = mysql.createPool({
@@ -36,6 +8,32 @@ const pool = mysql.createPool({
   user: "u564056537_tuser",
   password: "5IE|nXI26eU~",
   database: "u564056537_tpatti",
+});
+var _ = require("lodash");
+var cards = require("./cards");
+var EncyptionManager = require("bcryptjs");
+var NodeExpressServer = express();
+var ServerConfigs = require("http").createServer(NodeExpressServer);
+var MainEventListner = require("socket.io").listen(ServerConfigs);
+var bodyParser = require("body-parser");
+var DatabseServer = require("mongodb").DatabseServer;
+var DatabaseConfig =
+  "mongodb+srv://ksbm:Ravi1234@cluster0.rneyjw2.mongodb.net/test1";
+var ServerRes = require("./ServerResponse");
+
+NodeExpressServer.use(bodyParser.json());
+NodeExpressServer.use(
+  bodyParser.urlencoded({
+    extended: true,
+  })
+);
+
+NodeExpressServer.set("port", process.env.PORT || 8001);
+
+NodeExpressServer.get("/", function (req, res) {
+  console.log(" Client connecting....");
+  //   console.log(Res);
+  res.send(ServerRes["Res"]);
 });
 
 var clients = [];
@@ -97,23 +95,23 @@ var totalCards2 = [
   "50",
   "51",
 ];
-var PLAYER_LIST = {};
+var PList = {};
 
-app.get("/online", function (req, res) {
+NodeExpressServer.get("/online", function (req, res) {
   res.json(clients);
 });
 
 setInterval(function () {
-  for (var i in PLAYER_LIST) {
-    var lSocket = PLAYER_LIST[i];
+  for (var i in PList) {
+    var lSocket = PList[i];
     if (lSocket.adapter.rooms[lSocket.room] != undefined) {
       lSocket.adapter.rooms[lSocket.room].searchOne = 0;
     }
   }
   var ch3 = true;
-  for (var i in PLAYER_LIST) {
+  for (var i in PList) {
     if (ch3) {
-      var lSocket = PLAYER_LIST[i];
+      var lSocket = PList[i];
       if (lSocket.adapter.rooms[lSocket.room] != undefined) {
         if (lSocket.adapter.rooms[lSocket.room].play == "1") {
           ch3 = false;
@@ -126,8 +124,8 @@ setInterval(function () {
           var lsearch = lSocket.adapter.rooms[lSocket.room].searchPlayers;
           //if (lsearch == 0) {
           var sitPos = 0;
-          for (var j in PLAYER_LIST) {
-            var lSocket2 = PLAYER_LIST[j];
+          for (var j in PList) {
+            var lSocket2 = PList[j];
             if (
               lSocket.room == lSocket2.room &&
               lSocket2.adapter.rooms[lSocket2.room].play == "1"
@@ -161,7 +159,7 @@ setInterval(function () {
               sitPos++;
               if (lsearch == 0) {
                 if (Total_Player(lSocket2.room, 3) <= sitPos) {
-                  console.log("enen ");
+                  //   console.log("enen ");
                   if (Total_Player(lSocket2.room, 3) >= 2)
                     lSocket.adapter.rooms[lSocket.room].play = "2";
                   else lSocket.adapter.rooms[lSocket.room].play = "0";
@@ -175,8 +173,8 @@ setInterval(function () {
   }
   //Waiting after & Card pass shuffle
   var ch2 = true;
-  for (var j in PLAYER_LIST) {
-    var lSocket2 = PLAYER_LIST[j];
+  for (var j in PList) {
+    var lSocket2 = PList[j];
     if (ch2) {
       var socRoom = lSocket2.adapter.rooms[lSocket2.room];
       if (socRoom != undefined) {
@@ -192,8 +190,8 @@ setInterval(function () {
           if (socRoom.gameTimer > 5) {
             socRoom.gameTimer = 0;
             if (socRoom.length >= 2) {
-              for (var k in PLAYER_LIST) {
-                var lSocket3 = PLAYER_LIST[k];
+              for (var k in PList) {
+                var lSocket3 = PList[k];
                 var sroom = lSocket3.adapter.rooms[lSocket3.room];
                 if (sroom.play == "2" && lSocket2.room == lSocket3.room) {
                   sroom.potValue += sroom.bootValue;
@@ -217,8 +215,8 @@ setInterval(function () {
               socRoom.play = "3";
               var ccVal1 = false;
               var ccVal2 = false;
-              for (var k in PLAYER_LIST) {
-                var lSocket3 = PLAYER_LIST[k];
+              for (var k in PList) {
+                var lSocket3 = PList[k];
                 if (socRoom.dealerValue == lSocket3.seat - 1) ccVal1 = true;
                 if (socRoom.curPlyValue == lSocket3.seat - 1) ccVal2 = true;
               }
@@ -252,8 +250,8 @@ setInterval(function () {
             dealer: socRoom.dealerValue,
             seat: lSocket2.seat - 1,
           });
-          for (var k in PLAYER_LIST) {
-            var lSocket3 = PLAYER_LIST[k];
+          for (var k in PList) {
+            var lSocket3 = PList[k];
             var sroom = lSocket3.adapter.rooms[lSocket3.room];
             if (sroom.play == "3" && lSocket2.room == lSocket3.room) {
               lSocket3.emit("PassStr", { seat: lSocket3.seat - 1 });
@@ -273,7 +271,7 @@ setInterval(function () {
               ch2 = false;
               socRoom.play = "5";
               socRoom.waitingCount = 5;
-              console.log("start play");
+              //   console.log("start play");
               lSocket2.emit("Start_Play", {});
               lSocket2.broadcast.in(lSocket2.room).emit("Start_Play", {});
             } else {
@@ -291,8 +289,8 @@ setInterval(function () {
 
 //Game Timer
 setInterval(function () {
-  for (var j in PLAYER_LIST) {
-    var lSocket2 = PLAYER_LIST[j];
+  for (var j in PList) {
+    var lSocket2 = PList[j];
     var socRoom = lSocket2.adapter.rooms[lSocket2.room];
     if (socRoom != undefined && lSocket2.watch == 0) {
       var cChe = false;
@@ -308,7 +306,7 @@ setInterval(function () {
         //console.log("cplay " + socRoom.curPlyValue);
         var chipsCheck;
         if (socRoom.gameTimer == 0) {
-          chipsCheck = checkTotal_Chips(socRoom, lSocket2);
+          chipsCheck = tccfxn(socRoom, lSocket2);
           console.log(
             "karthik " +
               chipsCheck +
@@ -324,16 +322,16 @@ setInterval(function () {
               blindVal: socRoom.blindValue,
               chalVal: socRoom.chaalValue,
               seen: lSocket2.seen,
-              show: showFunc(lSocket2),
-              sideShow: sideShowFunc(lSocket2),
+              show: sffxn(lSocket2),
+              sideShow: sfxn(lSocket2),
             });
             lSocket2.broadcast.in(lSocket2.room).emit("StartGameTimer", {
               cPlay: socRoom.curPlyValue,
               blindVal: socRoom.blindValue,
               chalVal: socRoom.chaalValue,
               seen: lSocket2.seen,
-              show: showFunc(lSocket2),
-              sideShow: sideShowFunc(lSocket2),
+              show: sffxn(lSocket2),
+              sideShow: sfxn(lSocket2),
             });
           } else {
             socRoom.gameTimer = 19;
@@ -401,10 +399,10 @@ setInterval(function () {
               lSocket2.broadcast
                 .in(lSocket2.room)
                 .emit("CallPack", { seat: lSocket2.seat - 1 });
-              /*var roomCount2 = PLAYER_LIST[j].adapter.rooms[PLAYER_LIST[j].room];
+              /*var roomCount2 = PList[j].adapter.rooms[PList[j].room];
 							if (roomCount2 != undefined)
 								console.log("dddd " + roomCount2.length);*/
-              //delete PLAYER_LIST[j];
+              //delete PList[j];
               lSocket2.emit("TimeOut", {
                 nochips: "You are Timed Out",
                 time: "1",
@@ -437,8 +435,8 @@ setInterval(function () {
           for (var i = 0; i < 8; i++) {
             lSocket2.emit("PlusBtn", { status: "no", seat: i });
           }
-          for (var k in PLAYER_LIST) {
-            var lSocket3 = PLAYER_LIST[k];
+          for (var k in PList) {
+            var lSocket3 = PList[k];
             if (lSocket3.room == lSocket2.room && lSocket3.standby == 0) {
               lSocket3.seen = 0;
               lSocket3.pack = 0;
@@ -473,9 +471,9 @@ setInterval(function () {
           lSocket2.emit("ResetGame", {});
           lSocket2.broadcast.in(lSocket2.room).emit("ResetGame", {});
           /*var lSocket3;
-					for (var k in PLAYER_LIST) {
-						if (PLAYER_LIST[k].room == PLAYER_LIST[k].room) {
-							lSocket3 = PLAYER_LIST[k]
+					for (var k in PList) {
+						if (PList[k].room == PList[k].room) {
+							lSocket3 = PList[k]
 						}
 					}*/
           if (tCount >= 2) {
@@ -503,8 +501,8 @@ setInterval(function () {
             lSocket2.broadcast.in(lSocket2.room).emit("PlayerSort", {});
           } else {
             socRoom.play = "0";
-            for (var k in PLAYER_LIST) {
-              var lSocket3 = PLAYER_LIST[k];
+            for (var k in PList) {
+              var lSocket3 = PList[k];
               if (lSocket3.room == lSocket2.room) {
                 console.log(lSocket3.username);
                 if (lSocket3.standby == 1) lSocket3.watch = 1;
@@ -543,64 +541,62 @@ setInterval(function () {
   }
 }, 1000);
 
-function checkTotal_Chips(socRoom, lSocket2) {
-  var currValue = 0;
-  var chipEnoughValue = 0;
-  if (lSocket2.seen == 0) currValue = socRoom.blindValue;
-  else if (lSocket2.seen == 1) currValue = socRoom.chaalValue;
-
-  if (lSocket2.total_chips >= currValue) chipEnoughValue = 1;
-
-  return chipEnoughValue;
+function tccfxn(x, y) {
+  var z = 0;
+  var a = 0;
+  if (y.seen == 0) z = x.blindValue;
+  else if (y.seen == 1) z = x.chaalValue;
+  if (y.total_chips >= z) a = 1;
+  return a;
 }
-function sideShowFunc(lSocket2) {
-  var seenCount = 0;
-  var totalPla = 0;
-  for (var k in PLAYER_LIST) {
-    var lSocketShow = PLAYER_LIST[k];
-    if (lSocket2.room == lSocketShow.room && lSocketShow.watch == 0) {
-      if (lSocketShow.seen == 1 && lSocketShow.pack == 0) seenCount += 1;
-      totalPla += 1;
+function sfxn(x) {
+  var z = 0;
+  var c = 0;
+  for (var n in l) {
+    var v = l[n];
+    if (x.room == v.room && v.watch == 0) {
+      if (v.seen == 1 && v.pack == 0) z += 1;
+      c += 1;
     }
   }
-  if (seenCount == 3 && totalPla >= 3) seenCount = 3;
-  else seenCount = 0;
-  return seenCount;
+  if (z == 3 && c >= 3) z = 3;
+  else z = 0;
+  return z;
 }
-function sideShowFunc2(socRoom, lSocket2) {
-  var showAsed = 0;
-  var localCPlay = socRoom.curPlyValue;
-  var k = socRoom.curPlyValue - 1;
+function sfxn2(a, b) {
+  var r = a.curPlyValue - 1;
+  var z = 0;
   var kk = 0;
   var eChe = true;
+  var lcp = a.curPlyValue;
   while (eChe) {
-    if (k < 0) k = 4;
-    for (var i in PLAYER_LIST) {
-      var lSocket = PLAYER_LIST[i];
+    if (r < 0) r = 4;
+    for (var i in PList) {
+      var lSocket = PList[i];
       if (
-        lSocket.seat - 1 == k &&
-        lSocket.room == lSocket2.room &&
+        lSocket.seat - 1 == r &&
+        lSocket.room == b.room &&
         lSocket.seen == 1 &&
         lSocket.pack == 0 &&
-        localCPlay != k
+        lcp != r
       ) {
         eChe = false;
-        showAsed = k;
+        z = r;
       }
     }
-    k -= 1;
+    r -= 1;
     kk += 1;
     if (kk > 5) eChe = false;
   }
-  return showAsed;
+  return z;
 }
 
-function showFunc(lSocket2) {
+function sffxn(s) {
   var seenCount = 0;
   var totalPla = 0;
-  for (var k in PLAYER_LIST) {
-    var lSocketShow = PLAYER_LIST[k];
-    if (lSocket2.room == lSocketShow.room && lSocketShow.watch == 0) {
+  for (var k in PList) {
+    var lSocketShow = PList[k];
+    if (s.room == lSocketShow.room && lSocketShow.watch == 0) {
       if (lSocketShow.seen == 1 && lSocketShow.pack == 0) seenCount += 1;
       if (lSocketShow.pack == 0) totalPla += 1;
     }
@@ -616,8 +612,8 @@ function nextDealerValue(socRoom, lSocket2) {
   while (eChe) {
     socRoom.dealerValue += 1;
     if (socRoom.dealerValue >= 12) socRoom.dealerValue = 0;
-    for (var i in PLAYER_LIST) {
-      var lSocket = PLAYER_LIST[i];
+    for (var i in PList) {
+      var lSocket = PList[i];
       if (
         socRoom.dealerValue == lSocket.seat - 1 &&
         lSocket.room == lSocket2.room &&
@@ -636,8 +632,8 @@ function nextCurrPlayer(socRoom, lSocket2) {
   while (eChe) {
     socRoom.curPlyValue += 1;
     if (socRoom.curPlyValue >= 12) socRoom.curPlyValue = 0;
-    for (var k in PLAYER_LIST) {
-      var lSocket4 = PLAYER_LIST[k];
+    for (var k in PList) {
+      var lSocket4 = PList[k];
       //console.log("cc " + socRoom.curPlyValue + " " + (lSocket4.seat - 1));
       if (
         socRoom.curPlyValue == lSocket4.seat - 1 &&
@@ -655,8 +651,8 @@ function nextCurrPlayer(socRoom, lSocket2) {
   if (socRoom.play == "5") {
     if (socRoom.dealerValue == socRoom.curPlyValue) socRoom.roundCount += 1;
     if (socRoom.roundCount >= socRoom.maxBlind) {
-      for (var k in PLAYER_LIST) {
-        var lSocket4 = PLAYER_LIST[k];
+      for (var k in PList) {
+        var lSocket4 = PList[k];
         if (
           lSocket2.room == lSocket4.room &&
           lSocket4.pack == 0 &&
@@ -673,8 +669,8 @@ function checkPacked(chPack) {
   var pCount = 0;
   var cCount = chPack.adapter.rooms[chPack.room];
   var playerCount = 0;
-  for (var i in PLAYER_LIST) {
-    var lSocket = PLAYER_LIST[i];
+  for (var i in PList) {
+    var lSocket = PList[i];
     var socRoom = lSocket.adapter.rooms[lSocket.room];
     if (socRoom != undefined) {
       if (chPack.room == lSocket.room) {
@@ -688,8 +684,8 @@ function checkPacked(chPack) {
     }
   }
   if (playerCount - pCount == 1) {
-    for (var i in PLAYER_LIST) {
-      var lSocket = PLAYER_LIST[i];
+    for (var i in PList) {
+      var lSocket = PList[i];
       var socRoom = lSocket.adapter.rooms[lSocket.room];
       if (socRoom != undefined) {
         if (chPack.room == lSocket.room && lSocket.watch == 0) {
@@ -719,8 +715,8 @@ function checkPacked(chPack) {
 }
 
 function potLimitWinPlayer(winPlay, lSocket2) {
-  for (var i in PLAYER_LIST) {
-    var lSocket = PLAYER_LIST[i];
+  for (var i in PList) {
+    var lSocket = PList[i];
     var socRoom = lSocket.adapter.rooms[lSocket.room];
     if (socRoom != undefined) {
       if (lSocket2.room == lSocket.room && winPlay == lSocket.seat - 1) {
@@ -751,8 +747,8 @@ function potLimitWinPlayer(winPlay, lSocket2) {
 }
 function Total_Player(droom, side) {
   var playerCount = 0;
-  for (var i in PLAYER_LIST) {
-    var lSocket = PLAYER_LIST[i];
+  for (var i in PList) {
+    var lSocket = PList[i];
     if (side == 1) {
       if (lSocket.room == droom) {
         if (lSocket.watch == 0) playerCount += 1;
@@ -767,13 +763,13 @@ function Total_Player(droom, side) {
   return playerCount;
 }
 
-io.on("connection", function (socket) {
+MainEventListner.on("connection", function (socket) {
   //checkConnection();
   //var arStr="8s";
   //var handNormal = scoreHandsNormal(["Td", "Jd", "6h"]);
   //console.log("hands " + handNormal.score + " " + handNormal.name);
 
-  console.log("server connected");
+  console.log("ServerConfigs connected");
   socket.emit("Server_Started", { currVersion: currVersion, apkUrl: apkUrl });
   socket.on("Server_Started", function () {
     //socket.emit("Server_Started");
@@ -781,8 +777,8 @@ io.on("connection", function (socket) {
 
   socket.on("Room", function (data) {
     var alreadyPlay = false;
-    for (var j in PLAYER_LIST) {
-      var lSocket = PLAYER_LIST[j];
+    for (var j in PList) {
+      var lSocket = PList[j];
       //console.log(" dd "+data.room+" "+data.email+" "+lSocket.room+" "+lSocket.email);
       if (lSocket.email == data.email) {
         alreadyPlay = true;
@@ -805,7 +801,7 @@ io.on("connection", function (socket) {
       //for (var i = roomStart; i <= roomEnd && ch2; i++) {
       var i = parseInt(data.room);
       //console.log("roomid " + data.room);
-      var roomSocket = io.sockets.adapter.rooms[i + ""];
+      var roomSocket = MainEventListner.sockets.adapter.rooms[i + ""];
       if (roomSocket == undefined) {
         socket.join(i + "");
         socket.emit("RoomConnected", { room: parseInt(i + "") });
@@ -850,7 +846,7 @@ io.on("connection", function (socket) {
     var ch2 = true;
     var fRoom;
     for (var i = roomStart; i <= roomEnd && ch2; i++) {
-      var roomSocket = io.sockets.adapter.rooms[i + ""];
+      var roomSocket = MainEventListner.sockets.adapter.rooms[i + ""];
       if (roomSocket == undefined) {
         if (data.switchTable == "yes") {
           if (i > parseInt(data.room)) {
@@ -875,8 +871,8 @@ io.on("connection", function (socket) {
     }
 
     var che = false;
-    for (var j in PLAYER_LIST) {
-      var lSocket2 = PLAYER_LIST[j];
+    for (var j in PList) {
+      var lSocket2 = PList[j];
       if (lSocket2.room == fRoom) {
         console.log("karr ");
         che = true;
@@ -899,8 +895,8 @@ io.on("connection", function (socket) {
   socket.on("EnterRoomTwo", function (data) {
     //console.log("roo " + data.room);
     var che = false;
-    for (var j in PLAYER_LIST) {
-      var lSocket2 = PLAYER_LIST[j];
+    for (var j in PList) {
+      var lSocket2 = PList[j];
       if (lSocket2.room == data.room) {
         che = true;
         socket.emit("OtherPlayer_Connect", {
@@ -948,7 +944,7 @@ io.on("connection", function (socket) {
       socket.watch = 1;
     else socket.watch = 0;
 
-    PLAYER_LIST[socket.id] = socket;
+    PList[socket.id] = socket;
 
     socket.emit("YOU", { seat: socket.seat - 1 });
 
@@ -969,8 +965,8 @@ io.on("connection", function (socket) {
         status: "center",
       });
     } else {
-      for (var i in PLAYER_LIST) {
-        var lSocket = PLAYER_LIST[i];
+      for (var i in PList) {
+        var lSocket = PList[i];
         if (lSocket.room == socket.room) {
           lSocket.emit("WatchPlayer", {
             name: lSocket.name,
@@ -995,7 +991,7 @@ io.on("connection", function (socket) {
         shuffle: fName.shuffle,
       });
     }
-    //var roomCount = io.sockets.adapter.rooms[data.room];
+    //var roomCount = MainEventListner.sockets.adapter.rooms[data.room];
     //if (roomCount != undefined) {
     if (
       Total_Player(socket.room, 3) >= 1 &&
@@ -1006,92 +1002,90 @@ io.on("connection", function (socket) {
     //console.log("log" + roomCount.length);
   });
   socket.on("CardSeen", function () {
-    PLAYER_LIST[socket.id].seen = 1;
-    var lVar = PLAYER_LIST[socket.id].adapter.rooms[socket.room];
+    PList[socket.id].seen = 1;
+    var lVar = PList[socket.id].adapter.rooms[socket.room];
     lVar.chaalValue = lVar.blindValue * 2;
     socket.emit("CardSeen", {
-      seat: PLAYER_LIST[socket.id].seat - 1,
-      show: showFunc(socket),
-      sideShow: sideShowFunc(socket),
+      seat: PList[socket.id].seat - 1,
+      show: sffxn(socket),
+      sideShow: sfxn(socket),
       chaalValue: lVar.chaalValue,
     });
     socket.broadcast.in(socket.room).emit("CardSeen", {
-      seat: PLAYER_LIST[socket.id].seat - 1,
-      show: showFunc(socket),
-      sideShow: sideShowFunc(socket),
+      seat: PList[socket.id].seat - 1,
+      show: sffxn(socket),
+      sideShow: sfxn(socket),
       chaalValue: lVar.chaalValue,
     });
-    //console.log("CardSeen on" + PLAYER_LIST[socket.id].seat);
+    //console.log("CardSeen on" + PList[socket.id].seat);
   });
   socket.on("CallChaal", function (data) {
     var sInt = parseInt(data.chValue);
     var lVar;
-    if (PLAYER_LIST[socket.id].seen == 0) {
-      PLAYER_LIST[socket.id].adapter.rooms[socket.room].blindValue = sInt;
-      lVar = PLAYER_LIST[socket.id].adapter.rooms[socket.room].blindValue;
-      PLAYER_LIST[socket.id].adapter.rooms[socket.room].potValue += sInt;
+    if (PList[socket.id].seen == 0) {
+      PList[socket.id].adapter.rooms[socket.room].blindValue = sInt;
+      lVar = PList[socket.id].adapter.rooms[socket.room].blindValue;
+      PList[socket.id].adapter.rooms[socket.room].potValue += sInt;
     } else {
-      PLAYER_LIST[socket.id].adapter.rooms[socket.room].chaalValue = sInt;
-      lVar = PLAYER_LIST[socket.id].adapter.rooms[socket.room].chaalValue;
-      PLAYER_LIST[socket.id].adapter.rooms[socket.room].potValue += sInt;
+      PList[socket.id].adapter.rooms[socket.room].chaalValue = sInt;
+      lVar = PList[socket.id].adapter.rooms[socket.room].chaalValue;
+      PList[socket.id].adapter.rooms[socket.room].potValue += sInt;
     }
-    PLAYER_LIST[socket.id].total_chips -= lVar;
+    PList[socket.id].total_chips -= lVar;
     Updated_Chips(
-      PLAYER_LIST[socket.id],
-      PLAYER_LIST[socket.id].email,
-      PLAYER_LIST[socket.id].total_chips
+      PList[socket.id],
+      PList[socket.id].email,
+      PList[socket.id].total_chips
     );
-    PLAYER_LIST[socket.id].out = 1;
+    PList[socket.id].out = 1;
     socket.emit("CallChaal", {
-      seat: PLAYER_LIST[socket.id].seat - 1,
+      seat: PList[socket.id].seat - 1,
       passVal: lVar,
-      potValue: PLAYER_LIST[socket.id].adapter.rooms[socket.room].potValue,
-      total_chips: PLAYER_LIST[socket.id].total_chips,
+      potValue: PList[socket.id].adapter.rooms[socket.room].potValue,
+      total_chips: PList[socket.id].total_chips,
     });
     socket.broadcast.in(socket.room).emit("CallChaal", {
-      seat: PLAYER_LIST[socket.id].seat - 1,
+      seat: PList[socket.id].seat - 1,
       passVal: lVar,
-      potValue: PLAYER_LIST[socket.id].adapter.rooms[socket.room].potValue,
-      total_chips: PLAYER_LIST[socket.id].total_chips,
+      potValue: PList[socket.id].adapter.rooms[socket.room].potValue,
+      total_chips: PList[socket.id].total_chips,
     });
     //console.log("CallChaal on" + sInt);
-    PLAYER_LIST[socket.id].adapter.rooms[socket.room].gameTimer = 20;
+    PList[socket.id].adapter.rooms[socket.room].gameTimer = 20;
 
     if (
-      PLAYER_LIST[socket.id].adapter.rooms[socket.room].potValue >=
-      PLAYER_LIST[socket.id].adapter.rooms[socket.room].potLimit
+      PList[socket.id].adapter.rooms[socket.room].potValue >=
+      PList[socket.id].adapter.rooms[socket.room].potLimit
     ) {
       console.log(
-        "ll " + PLAYER_LIST[socket.id].adapter.rooms[socket.room].limitType
+        "ll " + PList[socket.id].adapter.rooms[socket.room].limitType
       );
-      if (
-        PLAYER_LIST[socket.id].adapter.rooms[socket.room].limitType == "Limited"
-      ) {
+      if (PList[socket.id].adapter.rooms[socket.room].limitType == "Limited") {
         socket.emit("PotLimit", {});
       }
     } else if (
-      PLAYER_LIST[socket.id].adapter.rooms[socket.room].chaalValue >=
-      PLAYER_LIST[socket.id].adapter.rooms[socket.room].chaalLimit
+      PList[socket.id].adapter.rooms[socket.room].chaalValue >=
+      PList[socket.id].adapter.rooms[socket.room].chaalLimit
     ) {
       //socket.emit("PotLimit", {});
     }
   });
 
   socket.on("CallPack", function () {
-    PLAYER_LIST[socket.id].pack = 1;
-    var pp = checkPacked(PLAYER_LIST[socket.id]);
-    if (pp == 1) PLAYER_LIST[socket.id].adapter.rooms[socket.room].play = "6";
+    PList[socket.id].pack = 1;
+    var pp = checkPacked(PList[socket.id]);
+    if (pp == 1) PList[socket.id].adapter.rooms[socket.room].play = "6";
     socket.emit("CallPack", {
-      seat: PLAYER_LIST[socket.id].seat - 1,
-      standby: PLAYER_LIST[socket.id].standby,
+      seat: PList[socket.id].seat - 1,
+      standby: PList[socket.id].standby,
     });
     socket.broadcast.in(socket.room).emit("CallPack", {
-      seat: PLAYER_LIST[socket.id].seat - 1,
-      standby: PLAYER_LIST[socket.id].standby,
+      seat: PList[socket.id].seat - 1,
+      standby: PList[socket.id].standby,
     });
-    console.log("CallPack on" + PLAYER_LIST[socket.id].seat);
-    PLAYER_LIST[socket.id].out = 1;
-    PLAYER_LIST[socket.id].adapter.rooms[socket.room].gameTimer = 20;
+    console.log("CallPack on" + PList[socket.id].seat);
+    PList[socket.id].out = 1;
+    PList[socket.id].adapter.rooms[socket.room].gameTimer = 20;
   });
   socket.on("SHOW", function (data) {
     var count = 0;
@@ -1099,8 +1093,8 @@ io.on("connection", function (socket) {
     var resTwo;
     var handNormal1;
     var handNormal2;
-    for (var k in PLAYER_LIST) {
-      var lSocketShow = PLAYER_LIST[k];
+    for (var k in PList) {
+      var lSocketShow = PList[k];
       if (socket.room == lSocketShow.room && lSocketShow.watch == 0) {
         if (lSocketShow.seen == 1 && lSocketShow.pack == 0) {
           console.log(
@@ -1142,16 +1136,16 @@ io.on("connection", function (socket) {
 
     console.log("mmm " + handNormal1.score + " " + handNormal2.score);
 
-    PLAYER_LIST[socket.id].adapter.rooms[socket.room].winStr = winStr;
+    PList[socket.id].adapter.rooms[socket.room].winStr = winStr;
     socket.emit("SHOW", { winStr: winStr, win: winShow });
     socket.broadcast
       .in(socket.room)
       .emit("SHOW", { winStr: winStr, win: winShow });
     console.log("winn " + winShow);
     var ch2 = true;
-    for (var i in PLAYER_LIST) {
+    for (var i in PList) {
       if (ch2) {
-        var lSocket = PLAYER_LIST[i];
+        var lSocket = PList[i];
         if (
           socket.room == lSocket.room &&
           lSocket.watch == 0 &&
@@ -1160,8 +1154,7 @@ io.on("connection", function (socket) {
         ) {
           lSocket.pack = 1;
           var pp = checkPacked(lSocket);
-          if (pp == 1)
-            PLAYER_LIST[socket.id].adapter.rooms[socket.room].play = "6";
+          if (pp == 1) PList[socket.id].adapter.rooms[socket.room].play = "6";
           lSocket.emit("CallShow", { seat: lSocket.seat - 1 });
           lSocket.broadcast
             .in(socket.room)
@@ -1172,21 +1165,21 @@ io.on("connection", function (socket) {
     }
   });
   socket.on("STANDBY", function (data) {
-    PLAYER_LIST[socket.id].watch = data.watch;
-    PLAYER_LIST[socket.id].standby = data.standby;
+    PList[socket.id].watch = data.watch;
+    PList[socket.id].standby = data.standby;
     console.log("standdd ");
     socket.emit("Instruction", {
-      instr: PLAYER_LIST[socket.id].username + " is watching",
+      instr: PList[socket.id].username + " is watching",
     });
-    socket.broadcast.in(PLAYER_LIST[socket.id].room).emit("Instruction", {
-      instr: PLAYER_LIST[socket.id].username + " is watching",
+    socket.broadcast.in(PList[socket.id].room).emit("Instruction", {
+      instr: PList[socket.id].username + " is watching",
     });
   });
   socket.on("STR", function (data) {
     //console.log("str " + data.carStr1);
-    PLAYER_LIST[socket.id].carStr1 = data.carStr1;
-    PLAYER_LIST[socket.id].carStr2 = data.carStr2;
-    PLAYER_LIST[socket.id].carStr3 = data.carStr3;
+    PList[socket.id].carStr1 = data.carStr1;
+    PList[socket.id].carStr2 = data.carStr2;
+    PList[socket.id].carStr3 = data.carStr3;
   });
   socket.on("BotPassStr", function (data) {
     var handNormal = scoreHandsNormal([
@@ -1201,20 +1194,17 @@ io.on("connection", function (socket) {
     });
   });
   socket.on("SIDESHOW", function () {
-    PLAYER_LIST[socket.id].sideshow = 1;
-    PLAYER_LIST[socket.id].out = 1;
-    PLAYER_LIST[socket.id].adapter.rooms[socket.room].gameTimer = 10;
-    if (sideShowFunc(socket) == 3) {
-      var askValue = sideShowFunc2(
-        PLAYER_LIST[socket.id].adapter.rooms[socket.room],
-        socket
-      );
-      PLAYER_LIST[socket.id].asked = askValue;
+    PList[socket.id].sideshow = 1;
+    PList[socket.id].out = 1;
+    PList[socket.id].adapter.rooms[socket.room].gameTimer = 10;
+    if (sfxn(socket) == 3) {
+      var askValue = sfxn2(PList[socket.id].adapter.rooms[socket.room], socket);
+      PList[socket.id].asked = askValue;
       console.log("ask " + askValue + " current" + (socket.seat - 1));
       var ch2 = true;
-      for (var i in PLAYER_LIST) {
+      for (var i in PList) {
         if (ch2) {
-          var lSocket = PLAYER_LIST[i];
+          var lSocket = PList[i];
           if (socket.room == lSocket.room && lSocket.seat - 1 == askValue) {
             console.log("ask " + (lSocket.seat - 1));
             lSocket.emit("AskSideShow", {
@@ -1230,8 +1220,8 @@ io.on("connection", function (socket) {
   socket.on("ACCEPT", function (data) {
     var currentUser;
     var clients2 = [];
-    for (var k in PLAYER_LIST) {
-      var lSocketShow = PLAYER_LIST[k];
+    for (var k in PList) {
+      var lSocketShow = PList[k];
       if (socket.room == lSocketShow.room && lSocketShow.watch == 0) {
         if (
           lSocketShow.pack == 0 &&
@@ -1263,11 +1253,11 @@ io.on("connection", function (socket) {
     }
 
     console.log();
-    PLAYER_LIST[socket.id].adapter.rooms[socket.room].gameTimer = 19;
+    PList[socket.id].adapter.rooms[socket.room].gameTimer = 19;
     var ch2 = true;
-    for (var i in PLAYER_LIST) {
+    for (var i in PList) {
       if (ch2) {
-        var lSocket = PLAYER_LIST[i];
+        var lSocket = PList[i];
         if (
           socket.room == lSocket.room &&
           lSocket.seat - 1 == clients2[1].seat
@@ -1285,9 +1275,9 @@ io.on("connection", function (socket) {
 
   socket.on("RemovePlayer", function (data) {
     var totPCount = 0;
-    for (var i in PLAYER_LIST) totPCount += 1;
-    for (var i in PLAYER_LIST) {
-      var lSocket = PLAYER_LIST[i];
+    for (var i in PList) totPCount += 1;
+    for (var i in PList) {
+      var lSocket = PList[i];
       var socRoom = lSocket.adapter.rooms[lSocket.room];
       if (socRoom != undefined && lSocket.room == socket.room) {
         if (socRoom.play == "0") {
@@ -1368,15 +1358,15 @@ io.on("connection", function (socket) {
       }
     }
 
-    delete PLAYER_LIST[socket.id];
+    delete PList[socket.id];
     delete socket;
   });
 
   socket.on("PotLimit", function (data) {
     var currentUser;
     var clients2 = [];
-    for (var k in PLAYER_LIST) {
-      var lSocketShow = PLAYER_LIST[k];
+    for (var k in PList) {
+      var lSocketShow = PList[k];
       if (socket.room == lSocketShow.room && lSocketShow.watch == 0) {
         if (lSocketShow.pack == 0) {
           var handNormal = scoreHandsNormal([
@@ -1414,19 +1404,15 @@ io.on("connection", function (socket) {
     }
 
     potLimitWinPlayer(parseInt(clients2[0].seat), socket);
-    PLAYER_LIST[socket.id].adapter.rooms[socket.room].play = "6";
-    PLAYER_LIST[socket.id].adapter.rooms[socket.room].winStr = clients2[0].name;
+    PList[socket.id].adapter.rooms[socket.room].play = "6";
+    PList[socket.id].adapter.rooms[socket.room].winStr = clients2[0].name;
   });
   socket.on("GetDocuments", function (data) {
     GetAllDocumentMongoDB(data, socket);
   });
 
   socket.on("UpdateChips", function (data) {
-    Updated_Chips(
-      PLAYER_LIST[socket.id],
-      PLAYER_LIST[socket.id].email,
-      data.total_chips
-    );
+    Updated_Chips(PList[socket.id], PList[socket.id].email, data.total_chips);
   });
   socket.on("CHAT", function (data) {
     socket.broadcast
@@ -1465,9 +1451,9 @@ io.on("connection", function (socket) {
 
   socket.on("disconnect", function () {
     var totPCount = 0;
-    for (var i in PLAYER_LIST) totPCount += 1;
-    for (var i in PLAYER_LIST) {
-      var lSocket = PLAYER_LIST[i];
+    for (var i in PList) totPCount += 1;
+    for (var i in PList) {
+      var lSocket = PList[i];
       var socRoom = lSocket.adapter.rooms[lSocket.room];
       if (socRoom != undefined && lSocket.room == socket.room) {
         if (socRoom.play == "1") {
@@ -1520,12 +1506,12 @@ io.on("connection", function (socket) {
       }
     }
     console.log("User has disconnected");
-    delete PLAYER_LIST[socket.id];
+    delete PList[socket.id];
   });
 });
 
 function Register(data, lSocket) {
-  MongoClient.connect(uri, function (err, db) {
+  DatabseServer.connect(DatabaseConfig, function (err, db) {
     var dbo = db.db("test1");
     var query = { email: data.email };
     dbo
@@ -1546,9 +1532,13 @@ function Register(data, lSocket) {
   });
 }
 function Register2(data, lSocket) {
-  MongoClient.connect(uri, function (err, db) {
+  DatabseServer.connect(DatabaseConfig, function (err, db) {
     var today = new Date();
-    var pWord = bcrypt.hashSync(data.password, bcrypt.genSaltSync(8), null);
+    var pWord = EncyptionManager.hashSync(
+      data.password,
+      EncyptionManager.genSaltSync(8),
+      null
+    );
     var myobj = {
       firstname: data.name,
       username: data.username,
@@ -1596,8 +1586,12 @@ function Register2(data, lSocket) {
 }
 
 function VerifyUser(data, lSocket) {
-  MongoClient.connect(uri, function (err, db) {
-    var pWord = bcrypt.hashSync(data.password, bcrypt.genSaltSync(8), null);
+  DatabseServer.connect(DatabaseConfig, function (err, db) {
+    var pWord = EncyptionManager.hashSync(
+      data.password,
+      EncyptionManager.genSaltSync(8),
+      null
+    );
     var dbo = db.db("test1");
     //console.log(data.email + " " + data.password);
     var query = { email: data.email };
@@ -1609,7 +1603,10 @@ function VerifyUser(data, lSocket) {
           lSocket.emit("VerifyUser", { email: data.email, status: "no" });
         } else {
           if (result.length != 0) {
-            const ppp = bcrypt.compareSync(data.password, result[0].password);
+            const ppp = EncyptionManager.compareSync(
+              data.password,
+              result[0].password
+            );
             if (ppp) {
               lSocket.emit("VerifyUser", {
                 _id: result[0]._id,
@@ -1639,7 +1636,7 @@ function VerifyUser(data, lSocket) {
   });
 }
 function Get_Chips(data, lSocket) {
-  MongoClient.connect(uri, function (err, db) {
+  DatabseServer.connect(DatabaseConfig, function (err, db) {
     var dbo = db.db("test1");
     var query = { email: data.email };
     dbo
@@ -1659,7 +1656,7 @@ function Get_Chips(data, lSocket) {
   });
 }
 function Updated_Chips(lSocket, email, chips) {
-  MongoClient.connect(uri, function (err, db) {
+  DatabseServer.connect(DatabaseConfig, function (err, db) {
     var dbo = db.db("test1");
     var myquery = { email: email };
     var newvalues = { $set: { chips: chips } };
@@ -1692,7 +1689,7 @@ function Updated_Cash(lSocket, email, cash) {
 		}
 	});*/
 
-  MongoClient.connect(uri, function (err, db) {
+  DatabseServer.connect(DatabaseConfig, function (err, db) {
     var dbo = db.db("test1");
     var query = { email: email };
     dbo
@@ -1718,7 +1715,7 @@ function Updated_Cash2(lSocket, email, cash) {
 		//console.log("updated " + result);
 		lSocket.emit("Update_Cash", { seat: (lSocket.seat - 1), cash: lSocket.cash });
 	});*/
-  MongoClient.connect(uri, function (err, db) {
+  DatabseServer.connect(DatabaseConfig, function (err, db) {
     var dbo = db.db("test1");
     var myquery = { email: email };
     var newvalues = { $set: { cash: cash } };
@@ -1736,7 +1733,7 @@ function Updated_Cash2(lSocket, email, cash) {
 }
 
 function GetAllDocumentMongoDB(data, lSocket) {
-  MongoClient.connect(uri, function (err, db) {
+  DatabseServer.connect(DatabaseConfig, function (err, db) {
     var empty = 0;
     if (err) console.log("not connected ");
     var dbo = db.db("test1");
@@ -1783,7 +1780,7 @@ function WithdrawSearch(lSocket, data) {
   });
 }
 function WithdrawMongoDB(lSocket, data) {
-  MongoClient.connect(uri, function (err, db) {
+  DatabseServer.connect(DatabaseConfig, function (err, db) {
     var dbo = db.db("test1");
     var myobj = {
       playerId: data._id,
@@ -1805,7 +1802,7 @@ function WithdrawMongoDB(lSocket, data) {
 }
 
 function WithdrawVerifyCash(email, user_cash, data, lSocket) {
-  MongoClient.connect(uri, function (err, db) {
+  DatabseServer.connect(DatabaseConfig, function (err, db) {
     var dbo = db.db("test1");
     var query = { email: email };
     dbo
@@ -1827,7 +1824,7 @@ function WithdrawVerifyCash(email, user_cash, data, lSocket) {
   });
 }
 function WithdrawUpdated_Cash(email, cash, data, lSocket) {
-  MongoClient.connect(uri, function (err, db) {
+  DatabseServer.connect(DatabaseConfig, function (err, db) {
     var dbo = db.db("test1");
     var myquery = { email: email };
     var newvalues = { $set: { cash: cash } };
@@ -1845,7 +1842,7 @@ function WithdrawUpdated_Cash(email, cash, data, lSocket) {
 }
 
 function ChangeMobileNumber(data, lSocket) {
-  MongoClient.connect(uri, function (err, db) {
+  DatabseServer.connect(DatabaseConfig, function (err, db) {
     var dbo = db.db("test1");
     var myquery = { email: data.email };
     var newvalues = { $set: { mobile: data.editColName } };
@@ -1961,8 +1958,8 @@ listOfUsers = function () {
   console.log("----------------------------------------");
 };
 
-server.listen(app.get("port"), function () {
-  console.log("Server is Running : " + server.address().port);
+ServerConfigs.listen(NodeExpressServer.get("port"), function () {
+  console.log("Server is Running : " + ServerConfigs.address().port);
 });
 
 function scoreHandsNormal(playerCards) {
