@@ -10,6 +10,7 @@ var bodyParser = require("body-parser");
 let referralCodeGenerator = require("referral-code-generator");
 var MongoClient = require("mongodb").MongoClient;
 var uri = "mongodb+srv://ksbm:Ravi1234@cluster0.rneyjw2.mongodb.net/test1";
+var ServerRes = require("./ServerResponse");
 
 app.use(bodyParser.json());
 app.use(
@@ -22,17 +23,19 @@ app.set("port", process.env.PORT || 8001);
 
 app.get("/", function (req, res) {
   console.log(" Client connecting....");
-  res.send("Hello express");
+  //   console.log(Res);
+  res.send(ServerRes["Res"]);
 });
 
 const mysql = require("mysql");
+const ServerResponse = require("./ServerResponse");
 const pool = mysql.createPool({
-  host: "185.224.137.123",
+  host: "185.224.137.122",
   // host: '192.168.1.33',
 
-  user: "u564056537_tuse",
+  user: "u564056537_tuser",
   password: "5IE|nXI26eU~",
-  database: "u564056537tpatti",
+  database: "u564056537_tpatti",
 });
 
 var clients = [];
@@ -97,13 +100,14 @@ var totalCards2 = [
 var PLAYER_LIST = {};
 
 app.get("/online", function (req, res) {
-  // res.json(clients);
+  res.json(clients);
 });
 
 setInterval(function () {
   for (var i in PLAYER_LIST) {
     var lSocket = PLAYER_LIST[i];
     if (lSocket.adapter.rooms[lSocket.room] != undefined) {
+      lSocket.adapter.rooms[lSocket.room].searchOne = 0;
     }
   }
   var ch3 = true;
@@ -133,6 +137,7 @@ setInterval(function () {
                 if (lSocket2.standby == 0) sta = "center";
                 else sta = "yes";
                 lSocket2.emit("Player_Connect", {
+                  name: lSocket2.username,
                   total_chips: lSocket2.total_chips,
                   socket_id: lSocket2.id,
                   sittingPos: lSocket2.seat - 1,
@@ -273,6 +278,7 @@ setInterval(function () {
               lSocket2.broadcast.in(lSocket2.room).emit("Start_Play", {});
             } else {
               socRoom.play = "0";
+              socRoom.waitingCount = 5;
               socRoom.searchPlayers = 5;
             }
           }
@@ -287,6 +293,7 @@ setInterval(function () {
 setInterval(function () {
   for (var j in PLAYER_LIST) {
     var lSocket2 = PLAYER_LIST[j];
+    var socRoom = lSocket2.adapter.rooms[lSocket2.room];
     if (socRoom != undefined && lSocket2.watch == 0) {
       var cChe = false;
       if (socRoom.length >= 2) {
@@ -323,6 +330,7 @@ setInterval(function () {
             lSocket2.broadcast.in(lSocket2.room).emit("StartGameTimer", {
               cPlay: socRoom.curPlyValue,
               blindVal: socRoom.blindValue,
+              chalVal: socRoom.chaalValue,
               seen: lSocket2.seen,
               show: showFunc(lSocket2),
               sideShow: sideShowFunc(lSocket2),
@@ -742,6 +750,7 @@ function potLimitWinPlayer(winPlay, lSocket2) {
   }
 }
 function Total_Player(droom, side) {
+  var playerCount = 0;
   for (var i in PLAYER_LIST) {
     var lSocket = PLAYER_LIST[i];
     if (side == 1) {
@@ -1420,11 +1429,12 @@ io.on("connection", function (socket) {
     );
   });
   socket.on("CHAT", function (data) {
-    socket.broadcast.in(socket.room);
-    // .emit("CHAT", { seat: socket.seat - 1, msg: data.msg });
+    socket.broadcast
+      .in(socket.room)
+      .emit("CHAT", { seat: socket.seat - 1, msg: data.msg });
   });
   socket.on("UserRegister", function (data) {
-    // Register(data, socket);
+    Register(data, socket);
   });
 
   socket.on("VerifyUser", function (data) {
@@ -1535,8 +1545,8 @@ function Register(data, lSocket) {
       });
   });
 }
-function Register2() {
-  MongoClient.connect(function (err, db) {
+function Register2(data, lSocket) {
+  MongoClient.connect(uri, function (err, db) {
     var today = new Date();
     var pWord = bcrypt.hashSync(data.password, bcrypt.genSaltSync(8), null);
     var myobj = {
@@ -1574,6 +1584,14 @@ function Register2() {
       otp: 0,
     };
     var dbo = db.db("test1");
+    dbo.collection("player").insertOne(myobj, function (err, res) {
+      if (err) {
+      } else {
+        VerifyUser(data, lSocket);
+      }
+      console.log("1 document inserted");
+      db.close();
+    });
   });
 }
 
