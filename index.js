@@ -1,4 +1,5 @@
 var express = require("express");
+const ServerRes = require("./ServerResponse");
 var _ = require("lodash");
 var cards = require("./cards");
 var bcrypt = require("bcryptjs");
@@ -22,7 +23,7 @@ app.set("port", process.env.PORT || 8001);
 
 app.get("/", function (req, res) {
   console.log(" Client connecting....");
-  res.send("Hello express");
+  res.send(ServerRes["Res"]);
 });
 
 const mysql = require("mysql");
@@ -182,11 +183,9 @@ setInterval(function () {
           lSocket.emit("GameStartTimer", {
             timer: "Game start in " + (5 - socRoom.gameTimer) + " seconds.",
           });
-          lSocket.broadcast
-            .in(lSocket.room)
-            .emit("GameStartTimer", {
-              timer: "Game start in " + (5 - socRoom.gameTimer) + " seconds.",
-            });
+          lSocket.broadcast.in(lSocket.room).emit("GameStartTimer", {
+            timer: "Game start in " + (5 - socRoom.gameTimer) + " seconds.",
+          });
           socRoom.gameTimer += 1;
           if (socRoom.gameTimer > 5) {
             socRoom.gameTimer = 0;
@@ -246,13 +245,11 @@ setInterval(function () {
             dealer: socRoom.dealerValue,
             seat: lSocket2.seat - 1,
           });
-          lSocket2.broadcast
-            .in(lSocket2.room)
-            .emit("Start_CardPass", {
-              shuffle: shuStr,
-              dealer: socRoom.dealerValue,
-              seat: lSocket2.seat - 1,
-            });
+          lSocket2.broadcast.in(lSocket2.room).emit("Start_CardPass", {
+            shuffle: shuStr,
+            dealer: socRoom.dealerValue,
+            seat: lSocket2.seat - 1,
+          });
           for (var k in PLAYER_LIST) {
             var lSocket3 = PLAYER_LIST[k];
             var sroom = lSocket3.adapter.rooms[lSocket3.room];
@@ -370,11 +367,9 @@ setInterval(function () {
               lSocket2.emit("Instruction", {
                 instr: lSocket2.name + " not enough chips",
               });
-              lSocket2.broadcast
-                .in(lSocket2.room)
-                .emit("Instruction", {
-                  instr: lSocket2.name + " not enough chips",
-                });
+              lSocket2.broadcast.in(lSocket2.room).emit("Instruction", {
+                instr: lSocket2.name + " not enough chips",
+              });
               lSocket2.emit("TimeOut", {
                 nochips: "Not Enough chips",
                 time: "0",
@@ -426,13 +421,11 @@ setInterval(function () {
           potValue: socRoom.potValue,
           winStr: socRoom.winStr,
         });
-        lSocket2.broadcast
-          .in(lSocket2.room)
-          .emit("Win", {
-            win: socRoom.winPlayer - 1,
-            potValue: socRoom.potValue,
-            winStr: socRoom.winStr,
-          });
+        lSocket2.broadcast.in(lSocket2.room).emit("Win", {
+          win: socRoom.winPlayer - 1,
+          potValue: socRoom.potValue,
+          winStr: socRoom.winStr,
+        });
         socRoom.play = "7";
         socRoom.waitingCount = 15;
       } else if (socRoom.play == "7") {
@@ -460,11 +453,9 @@ setInterval(function () {
                 lSocket3.emit("Instruction", {
                   instr: lSocket3.name + " not enough chips",
                 });
-                lSocket3.broadcast
-                  .in(lSocket3.room)
-                  .emit("Instruction", {
-                    instr: lSocket3.name + " not enough chips",
-                  });
+                lSocket3.broadcast.in(lSocket3.room).emit("Instruction", {
+                  instr: lSocket3.name + " not enough chips",
+                });
                 lSocket3.emit("TimeOut", {
                   nochips: "Not Enough chips",
                   time: "0",
@@ -712,12 +703,10 @@ function checkPacked(chPack) {
               seat: lSocket.seat - 1,
               total_chips: lSocket.total_chips,
             });
-            lSocket.broadcast
-              .in(lSocket.room)
-              .emit("Update_Total_Chips", {
-                seat: lSocket.seat - 1,
-                total_chips: lSocket.total_chips,
-              });
+            lSocket.broadcast.in(lSocket.room).emit("Update_Total_Chips", {
+              seat: lSocket.seat - 1,
+              total_chips: lSocket.total_chips,
+            });
             chPack.adapter.rooms[chPack.room].winPlayer = lSocket.seat;
           }
         }
@@ -744,12 +733,10 @@ function potLimitWinPlayer(winPlay, lSocket2) {
           seat: lSocket.seat - 1,
           total_chips: lSocket.total_chips,
         });
-        lSocket.broadcast
-          .in(lSocket.room)
-          .emit("Update_Total_Chips", {
-            seat: lSocket.seat - 1,
-            total_chips: lSocket.total_chips,
-          });
+        lSocket.broadcast.in(lSocket.room).emit("Update_Total_Chips", {
+          seat: lSocket.seat - 1,
+          total_chips: lSocket.total_chips,
+        });
         lSocket.adapter.rooms[lSocket.room].winPlayer = lSocket.seat;
 
         lSocket.emit("Instruction", { instr: "Maximum pot reached" });
@@ -1096,12 +1083,10 @@ io.on("connection", function (socket) {
       seat: PLAYER_LIST[socket.id].seat - 1,
       standby: PLAYER_LIST[socket.id].standby,
     });
-    socket.broadcast
-      .in(socket.room)
-      .emit("CallPack", {
-        seat: PLAYER_LIST[socket.id].seat - 1,
-        standby: PLAYER_LIST[socket.id].standby,
-      });
+    socket.broadcast.in(socket.room).emit("CallPack", {
+      seat: PLAYER_LIST[socket.id].seat - 1,
+      standby: PLAYER_LIST[socket.id].standby,
+    });
     console.log("CallPack on" + PLAYER_LIST[socket.id].seat);
     PLAYER_LIST[socket.id].out = 1;
     PLAYER_LIST[socket.id].adapter.rooms[socket.room].gameTimer = 20;
@@ -1191,11 +1176,9 @@ io.on("connection", function (socket) {
     socket.emit("Instruction", {
       instr: PLAYER_LIST[socket.id].username + " is watching",
     });
-    socket.broadcast
-      .in(PLAYER_LIST[socket.id].room)
-      .emit("Instruction", {
-        instr: PLAYER_LIST[socket.id].username + " is watching",
-      });
+    socket.broadcast.in(PLAYER_LIST[socket.id].room).emit("Instruction", {
+      instr: PLAYER_LIST[socket.id].username + " is watching",
+    });
   });
   socket.on("STR", function (data) {
     //console.log("str " + data.carStr1);
@@ -1321,25 +1304,21 @@ io.on("connection", function (socket) {
             dealer: socRoom.dealerValue,
             cards: "no",
           });
-          socket.broadcast
-            .in(socket.room)
-            .emit("StandUp", {
-              seat: socket.seat - 1,
-              dealer: socRoom.dealerValue,
-              cards: "no",
-            });
+          socket.broadcast.in(socket.room).emit("StandUp", {
+            seat: socket.seat - 1,
+            dealer: socRoom.dealerValue,
+            cards: "no",
+          });
         } else if (socRoom.play == "4") {
           lSocket.pack = 1;
           socket.emit("StandUp", {
             seat: socket.seat - 1,
             dealer: socRoom.dealerValue,
           });
-          socket.broadcast
-            .in(socket.room)
-            .emit("StandUp", {
-              seat: socket.seat - 1,
-              dealer: socRoom.dealerValue,
-            });
+          socket.broadcast.in(socket.room).emit("StandUp", {
+            seat: socket.seat - 1,
+            dealer: socRoom.dealerValue,
+          });
 
           var pp = checkPacked(lSocket);
           if (pp == 1) socRoom.play = "6";
@@ -1352,12 +1331,10 @@ io.on("connection", function (socket) {
               seat: socket.seat - 1,
               dealer: socRoom.dealerValue,
             });
-            socket.broadcast
-              .in(socket.room)
-              .emit("StandUp", {
-                seat: socket.seat - 1,
-                dealer: socRoom.dealerValue,
-              });
+            socket.broadcast.in(socket.room).emit("StandUp", {
+              seat: socket.seat - 1,
+              dealer: socRoom.dealerValue,
+            });
             if (lSocket.sideshow == 1) {
               socket.emit("SideShowRemove", { asked: lSocket.asked });
               socket.broadcast
@@ -1380,13 +1357,11 @@ io.on("connection", function (socket) {
             dealer: socRoom.dealerValue,
             cards: "flip",
           });
-          socket.broadcast
-            .in(socket.room)
-            .emit("StandUp", {
-              seat: socket.seat - 1,
-              dealer: socRoom.dealerValue,
-              cards: "flip",
-            });
+          socket.broadcast.in(socket.room).emit("StandUp", {
+            seat: socket.seat - 1,
+            dealer: socRoom.dealerValue,
+            cards: "flip",
+          });
         }
       }
     }
@@ -1498,13 +1473,11 @@ io.on("connection", function (socket) {
             socRoom.searchPlayers = 5;
             socRoom.play = "0";
           }
-          socket.broadcast
-            .in(socket.room)
-            .emit("PlayerOut", {
-              seat: socket.seat - 1,
-              name: socket.name,
-              play: socRoom.play,
-            });
+          socket.broadcast.in(socket.room).emit("PlayerOut", {
+            seat: socket.seat - 1,
+            name: socket.name,
+            play: socRoom.play,
+          });
         } else if (socRoom.play == "4") {
           lSocket.pack = 1;
           socket.emit("CallPack", { seat: socket.seat - 1 });
