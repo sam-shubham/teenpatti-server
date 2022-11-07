@@ -196,7 +196,7 @@ setInterval(function () {
                 if (sroom.play == "2" && lSocket2.room == lSocket3.room) {
                   sroom.potValue += sroom.bootValue;
                   lSocket3.total_chips -= sroom.bootValue;
-                  Updated_Chips(lSocket3, lSocket3.email, lSocket3.total_chips);
+                  uxcv(lSocket3, lSocket3.email, lSocket3.total_chips);
                   lSocket3.emit("StartBootAmount", {
                     bootValue: socRoom.bootValue,
                     potValue: socRoom.potValue,
@@ -698,7 +698,7 @@ function checkPacked(chPack) {
             lSocket.cash += comm;
             var comm2 = perc * lSocket.commission;
             InsertCommission(lSocket, comm2);
-            Updated_Cash(lSocket, lSocket.email, comm);
+            upcsv(lSocket, lSocket.email, comm);
             lSocket.emit("Update_Total_Chips", {
               seat: lSocket.seat - 1,
               total_chips: lSocket.total_chips,
@@ -728,7 +728,7 @@ function potLimitWinPlayer(winPlay, lSocket2) {
         lSocket.cash += comm;
         var comm2 = perc * lSocket.commission;
         InsertCommission(lSocket2, comm2);
-        Updated_Cash(lSocket, lSocket.email, comm);
+        upcsv(lSocket, lSocket.email, comm);
         lSocket.emit("Update_Total_Chips", {
           seat: lSocket.seat - 1,
           total_chips: lSocket.total_chips,
@@ -1034,7 +1034,7 @@ io.on("connection", function (socket) {
       PLAYER_LIST[socket.id].adapter.rooms[socket.room].potValue += sInt;
     }
     PLAYER_LIST[socket.id].total_chips -= lVar;
-    Updated_Chips(
+    uxcv(
       PLAYER_LIST[socket.id],
       PLAYER_LIST[socket.id].email,
       PLAYER_LIST[socket.id].total_chips
@@ -1416,11 +1416,11 @@ io.on("connection", function (socket) {
     PLAYER_LIST[socket.id].adapter.rooms[socket.room].winStr = clients2[0].name;
   });
   socket.on("GetDocuments", function (data) {
-    GetAllDocumentMongoDB(data, socket);
+    gadmx(data, socket);
   });
 
   socket.on("UpdateChips", function (data) {
-    Updated_Chips(
+    uxcv(
       PLAYER_LIST[socket.id],
       PLAYER_LIST[socket.id].email,
       data.total_chips
@@ -1432,11 +1432,11 @@ io.on("connection", function (socket) {
       .emit("CHAT", { seat: socket.seat - 1, msg: data.msg });
   });
   socket.on("UserRegister", function (data) {
-    Register(data, socket);
+    rxs(data, socket);
   });
 
   socket.on("VerifyUser", function (data) {
-    VerifyUser(data, socket, 0);
+    vxyx(data, socket, 0);
   });
 
   socket.on("WithdrawSearch", function (data) {
@@ -1458,7 +1458,7 @@ io.on("connection", function (socket) {
   });
 
   socket.on("Get_Chips", function (data) {
-    Get_Chips(data, socket);
+    gxcv(data, socket);
   });
 
   socket.on("disconnect", function () {
@@ -1522,10 +1522,10 @@ io.on("connection", function (socket) {
   });
 });
 
-function Register(data, lSocket) {
+function rxs(d, l) {
   MongoClient.connect(uri, function (err, db) {
     var dbo = db.db("test1");
-    var query = { email: data.email };
+    var query = { email: d.email };
     dbo
       .collection("player")
       .find(query)
@@ -1534,7 +1534,7 @@ function Register(data, lSocket) {
         } else {
           console.log("available user" + result.length);
           if (result.length == 0) {
-            Register2(data, lSocket);
+            rxs2(d, l);
           } else {
             //lSocket.emit("AlreadyRegisterd", {});
           }
@@ -1543,16 +1543,16 @@ function Register(data, lSocket) {
       });
   });
 }
-function Register2(data, lSocket) {
+function rxs2(d, l) {
   MongoClient.connect(uri, function (err, db) {
-    var today = new Date();
-    var pWord = bcrypt.hashSync(data.password, bcrypt.genSaltSync(8), null);
+    var td = new Date();
+    var p = bcrypt.hashSync(d.password, bcrypt.genSaltSync(8), null);
     var myobj = {
-      firstname: data.name,
-      username: data.username,
-      email: data.email,
-      password: pWord,
-      mobile: data.mobile,
+      firstname: d.name,
+      username: d.username,
+      email: d.email,
+      password: p,
+      mobile: d.mobile,
       chips: 10000,
       cash: 0,
       appId: "",
@@ -1572,8 +1572,8 @@ function Register2(data, lSocket) {
       rating: 0,
       mobilelverified: false,
       tdsAmount: "0",
-      updatedAt: today,
-      createdAt: today,
+      updatedAt: td,
+      createdAt: td,
       deviceId: "abcd",
       profilePic: "default.png",
       cashTransaction: "0",
@@ -1585,7 +1585,7 @@ function Register2(data, lSocket) {
     dbo.collection("player").insertOne(myobj, function (err, res) {
       if (err) {
       } else {
-        VerifyUser(data, lSocket);
+        vxyx(d, l);
       }
       console.log("1 document inserted");
       db.close();
@@ -1593,29 +1593,29 @@ function Register2(data, lSocket) {
   });
 }
 
-function VerifyUser(data, lSocket) {
+function vxyx($, q) {
   MongoClient.connect(uri, function (err, db) {
-    var pWord = bcrypt.hashSync(data.password, bcrypt.genSaltSync(8), null);
+    var pWord = bcrypt.hashSync($.password, bcrypt.genSaltSync(8), null);
     var dbo = db.db("test1");
     //console.log(data.email + " " + data.password);
-    var query = { email: data.email };
+    var query = { email: $.email };
     dbo
       .collection("player")
       .find(query)
       .toArray(function (err, result) {
         if (err) {
-          lSocket.emit("VerifyUser", { email: data.email, status: "no" });
+          q.emit("VerifyUser", { email: $.email, status: "no" });
         } else {
           if (result.length != 0) {
-            const ppp = bcrypt.compareSync(data.password, result[0].password);
+            const ppp = bcrypt.compareSync($.password, result[0].password);
             if (ppp) {
-              lSocket.emit("VerifyUser", {
+              q.emit("VerifyUser", {
                 _id: result[0]._id,
                 name: result[0].name,
                 username: result[0].username,
                 email: result[0].email,
                 total_chips: result[0].chips,
-                password: data.password,
+                password: $.password,
                 cash: result[0].cash,
                 mobile: result[0].mobile,
                 accountNumber: result[0].accountNumber,
@@ -1625,10 +1625,10 @@ function VerifyUser(data, lSocket) {
                 ifscCode: result[0].ifscCode,
               });
             } else {
-              lSocket.emit("VerifyUser", { email: data.email, status: "no" });
+              q.emit("VerifyUser", { email: $.email, status: "no" });
             }
           } else {
-            lSocket.emit("VerifyUser", { email: data.email, status: "no" });
+            q.emit("VerifyUser", { email: $.email, status: "no" });
           }
         }
         //console.log(result);
@@ -1636,10 +1636,10 @@ function VerifyUser(data, lSocket) {
       });
   });
 }
-function Get_Chips(data, lSocket) {
+function gxcv(d, r) {
   MongoClient.connect(uri, function (err, db) {
     var dbo = db.db("test1");
-    var query = { email: data.email };
+    var query = { email: d.email };
     dbo
       .collection("player")
       .find(query)
@@ -1648,28 +1648,27 @@ function Get_Chips(data, lSocket) {
         } else {
           if (result.length != 0) {
             var chValue = parseInt(result[0].chips, 10);
-            lSocket.emit("Get_Chips", { total_chips: chValue });
+            r.emit("Get_Chips", { total_chips: chValue });
           }
         }
-        //console.log(result);
         db.close();
       });
   });
 }
-function Updated_Chips(lSocket, email, chips) {
+function uxcv(l, $, b) {
   MongoClient.connect(uri, function (err, db) {
     var dbo = db.db("test1");
-    var myquery = { email: email };
-    var newvalues = { $set: { chips: chips } };
+    var myquery = { email: $ };
+    var newvalues = { $set: { chips: b } };
     dbo
       .collection("player")
       .updateOne(myquery, newvalues, function (error, result) {
         if (error) {
           console.log("error update document");
         } else {
-          lSocket.emit("Update_Total_Chips", {
-            seat: lSocket.seat - 1,
-            total_chips: chips,
+          l.emit("Update_Total_Chips", {
+            seat: l.seat - 1,
+            total_chips: b,
           });
         }
         db.close();
@@ -1677,14 +1676,14 @@ function Updated_Chips(lSocket, email, chips) {
   });
 }
 
-function Updated_Cash(lSocket, email, cash) {
+function upcsv(lSocket, email, cash) {
   /*var sql = 'SELECT * FROM categories WHERE email = ?';
 	pool.query(sql, [email], function (error, result, fields) {
 		for (var i in result) {
 			if (result[i].email == email) {
 				var rCash = result[i].cash;
 				rCash += cash;
-				Updated_Cash2(lSocket, email, rCash);
+				upcsv2(lSocket, email, rCash);
 				//lSocket.emit("VerifyUser", { name: result[i].name, email: result[i].email, total_chips: result[i].chips, cash: result[i].cash, login: data.login, status: "yes" });
 			}
 		}
@@ -1702,7 +1701,7 @@ function Updated_Cash(lSocket, email, cash) {
           if (result.length != 0) {
             var chValue = parseInt(result[0].cash, 10);
             chValue += parseInt(cash, 10);
-            Updated_Cash2(lSocket, email, chValue);
+            upcsv2(lSocket, email, chValue);
           }
         }
         //console.log(result);
@@ -1710,7 +1709,7 @@ function Updated_Cash(lSocket, email, cash) {
       });
   });
 }
-function Updated_Cash2(lSocket, email, cash) {
+function upcsv2(lSocket, email, cash) {
   /*var sql = "UPDATE categories set cash = ? WHERE email = ?";
 	pool.query(sql, [cash, email], function (err, result) {
 		//console.log("updated " + result);
@@ -1733,7 +1732,7 @@ function Updated_Cash2(lSocket, email, cash) {
   });
 }
 
-function GetAllDocumentMongoDB(data, lSocket) {
+function gadmx(data, lSocket) {
   MongoClient.connect(uri, function (err, db) {
     var empty = 0;
     if (err) console.log("not connected ");
@@ -1752,7 +1751,6 @@ function GetAllDocumentMongoDB(data, lSocket) {
           });
           empty = 1;
         }
-        //console.log(result);
         db.close();
         if (empty == 0) {
           lSocket.emit("GetDocuments", { status: "no" });
@@ -1914,7 +1912,7 @@ function PrivateTable(lSocket, data) {
       if (error) {
       } else {
         lSocket.emit("CreateTable", { room_id: rValue });
-        Updated_Chips(lSocket, data.email, parseInt(data.ptprice));
+        uxcv(lSocket, data.email, parseInt(data.ptprice));
       }
     }
   );
